@@ -614,7 +614,7 @@ class Game:
                                 for clicked_blk in self.idiom_clicked_blocks:
                                     if clicked_blk in self.current_blocks:
                                         clicked_blk.settled = False
-                                        clicked_blk.vy = self.fall_speed
+                                        clicked_blk.vy = self.fall_speed * 0.5
                                 self.idiom_clicked_blocks.clear()
                                 self.idiom_click_index = 0
                         else:
@@ -626,7 +626,7 @@ class Game:
                         for clicked_blk in self.idiom_clicked_blocks:
                             if clicked_blk in self.current_blocks:
                                 clicked_blk.settled = False
-                                clicked_blk.vy = self.fall_speed
+                                clicked_blk.vy = self.fall_speed * 0.5
                         self.idiom_clicked_blocks.clear()
                         self.idiom_click_index = 0
                         # Blocks will continue falling normally and settle at bottom
@@ -671,6 +671,9 @@ class Game:
         if not in_pinyin_delay:
             keys = pygame.key.get_pressed()
             speed_y = self.fast_fall_speed if keys[pygame.K_DOWN] else self.fall_speed
+            # Reduce falling speed by half in IDIOM mode
+            if self.mode == Mode.IDIOM:
+                speed_y = speed_y * 0.5
             
             for blk in self.current_blocks:
                 if blk.settled:
