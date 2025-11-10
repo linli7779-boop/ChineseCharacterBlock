@@ -1,0 +1,139 @@
+Product Requirements Document (PRD) — Vibe: Chinese Character Block Game
+Author: Lin Li
+Date: 2025-11-02
+Audience: Game developer / designer / packager
+Goal: Build a cross-platform, educational arcade-style game that helps users recognize Chinese characters, type pinyin, and form idioms (成语) through three arcade subgames. The game must run as a native executable on Windows/macOS and also be deployable to web browsers.
+
+1 — Overview / Elevator pitch
+Chinese Character Block (汉字方块）is a falling-block arcade game with three study modes:
+    • 认汉字 — rotate falling blocks so the Chinese character is upright when it lands.
+    • 认字写拼音 — type the character’s pinyin (without tone marks) while the block falls.
+    • 组成语 — click characters (falling on separate blocks) in the correct order to form a target idiom.
+Playable with keyboard + mouse. black character, transparent block with gray borders, and colorful pinyin letters. Simple, colorful visuals (blue sky + clouds + grass), firework feedback and sound. Level progression, scoring, game-over stacking mechanics, and easy packaging for desktop and web.
+
+2 — Core requirements (must-haves)
+UX & UI
+    • Single-screen layout.
+    • Left vertical control column (width is one fifth of the game screen) with three buttons, centered vertically and equally spaced:
+        ◦ Top → Bottom: "认汉字", "认字写拼音", "组成语". font size 12.
+    • Main play area to the right occupies remaining screen.
+    • Score (top-right) and current level (under score).
+    • Instruction modal when the player clicks any subgame button; a "ready to play" button to start.
+    • Background: blue sky, light white clouds, green grass strip along bottom.
+    • Black characters, transparent block with gray borders, and colorful pinyin letters. 
+Gameplay (common mechanics)
+    • Blocks are squares. Block size = 1/10 of screen height (responsive).
+    • Blocks fall from top. Player can move left/right (arrow keys) while falling; down arrow accelerates fall.
+    • Blocks stack on a discrete grid; stacking reaching the top = Game Over with centered "Game Over" text.
+Subgame: 认汉字 (Rotate-to-recognize)
+    • 14 levels (level 1 = strokes < 4; level 2 = exactly 4 strokes; ... level 13 = 15 strokes; level 14 = >15 strokes).
+    • Total dataset target ≈ 3500 popular characters (organized per level dictionaries).
+    • Each falling block contains a single Chinese character chosen randomly from the dictionary for the current level.
+    • When spawned, block & glyph rotated by 90°, 180°, or 270° (random).
+    • Player rotates block by Spacebar (90° clockwise each press). Down arrow → faster drop.
+    • When block collides with ground/stack:
+        ◦ If glyph orientation is correct (upright) → firework animation + sound + points awarded; block disappears.
+        ◦ Else → block stays in stack (no points).
+    • Points: Base 5 points for level 1, +5 per level (Level n point = 5 * n), so Level 14 = 70 points.
+    • After 10% of characters in current level have been oriented correctly (and game not over), advance to next level:
+        ◦ Show "Congratulations! You move up one level" centered for 1s → "Next Level" for 1s. Clear stacked blocks.
+Subgame: 认字写拼音 (Type pinyin)
+    • Same 14-level structure and spawn behavior, but:
+        ◦ Character is oriented correctly at spawn.
+        ◦ Player types pinyin (without tone marks). While typing, the typed letters display above the block.
+        ◦ If typed pinyin matches the dictionary value (tone ignored) before the block lands → points awarded and firework explosion; block disappears.
+        ◦ If not typed correctly by landing → block stays (no points).
+    • Level progression: after 10% of characters at that level spelled correctly → advance (same messages & stack clear).
+Subgame: 组成语 (Form idiom)
+    • 6 levels (increasing difficulty / rare idioms).
+    • Each round, randomly pick one idiom from the level list (4-character idioms assumed).
+    • Each idiom character goes into its own block; blocks spawn separated (random horizontal locations) and fall simultaneously.
+    • Player uses mouse to click the blocks in the correct idiom order. If correct prior to landing:
+        ◦ Combine characters visually; award 10 points; firework + sound; blocks disappear.
+        ◦ Else: blocks land and stay; no points.
+    • Level progression: after 10% of idioms in that level assembled correctly → advance; same messages & stack clear.
+Audio/Effects
+    • Firework sound when blocks are correctly resolved.
+    • Explosion/particle visuals (simple firework sprite or procedural particles).
+    • Optional background music toggle.
+Accessibility / Input
+    • Keyboard controls:
+        ◦ Left / Right arrows: move falling block horizontally.
+        ◦ Down arrow: accelerate fall.
+        ◦ Spacebar: rotate 90° clockwise (认汉字 only).
+        ◦ Typing letters: accepted as pinyin input for 认字写拼音.
+    • Mouse:
+        ◦ Click UI buttons.
+        ◦ Click blocks (组成语).
+    • Visual cues / large fonts for characters to be readable.
+
+3 — Data & content
+    • Character dictionaries: external JSON files named level1.json … level14.json, where each file maps character → pinyin(s). The provided character.py is also a good reference which creates dictionaries from provided txt files (level1.txt ... level14.txt) that include all characters the designer wants. Format example in json file:
+{
+        "character":  "一",
+        "pinyin":  "yī"
+    }.
+	format exmaple in txt file: 一 yī
+	format example in dictionary also could be: 
+	{
+	'一': 'yī',
+	...
+	'飞': 'fei'
+	}
+    • Idioms lists: idiom_level1.json … idiom_level6.json, each a list of idioms and optionally metadata. The provided idiom.py is also a good reference which creates lists from provided txt files (idiom_level1.json ... idiom_level6.txt) that include all idioms the designer wants. Format example in json file:
+[
+  {
+        "idiom":  "一心一意"
+    },
+  ...
+   {
+        "idiom":  "兴高采烈"
+    }
+]
+    format example in txt file: 一心一意
+	format example in list also could be: ['一心一意', ... '兴高采烈']
+    • The repository should include small sample datasets for testing. Full datasets (≈3500 chars) can be imported later.
+
+4 — Technical approach & packaging
+Technology stack (recommended)
+    • Python + Pygame for core game code (desktop). Pygame is mature and easy to package with PyInstaller.
+    • Pygbag to compile Pygame app to WebAssembly/HTML so it runs inside browsers (deploy to static web hosting).
+        ◦ Pygbag converts Pygame apps to run in browsers (works with desktop Pygame code with some constraints).
+    • Packaging:
+        ◦ Windows / macOS: use PyInstaller or Briefcase to create native executables (.exe/.app).
+        ◦ Web: build with pygbag and upload the build/web output to any static host (Netlify, GitHub Pages).
+File structure (suggested)
+vibe/
+  data/
+    level1.json ... level14.json
+    idiom_level1.json ... idiom_level6.json
+  assets/
+    fireworks.wav
+    background.png (or procedural)
+  src/
+    main.py
+    game.py
+    ui.py
+    data_loader.py
+    effects.py
+  README.md
+  requirements.txt
+
+5 — Success metrics
+    • Playable on Windows + macOS as native executable.
+    • Playable in modern browsers (Chrome, Firefox, Safari) via Pygbag build.
+    • Core mechanics implemented for all three subgames.
+    • Responsive UI: block size relative to screen height.
+    • Level progression and scoring work as specified.
+    • Basic firework effect + sound implemented.
+
+6 — Risks & open decisions (implemented with reasonable defaults)
+    • Full dataset (3500 chars) is large; initial release ships with small sample JSONs. Provide tooling to import full lists.
+    • Pygbag can run most Pygame code but might require some adjustments for file I/O and fonts — code will use resource paths compatible with both packaging targets.
+    • Browser input behavior (keyboard focus) needs careful handling. The implementation sets focus and instructs users to click the canvas to capture input.
+
+7 — Next steps / deliverables
+    1. Provide a runnable Pygame prototype (single Python file) implementing gameplay core (below).
+    2. Add complete character & idiom JSON files.
+    3. Create packaging scripts for PyInstaller (desktop) and Pygbag (web).
+    4. Polish assets (sprites, sounds) and add localization/analytics.
