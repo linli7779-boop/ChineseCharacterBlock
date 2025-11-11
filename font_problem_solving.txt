@@ -58,6 +58,6 @@ inside.
 3. Font File Setup
 Did Cursor Download the Font?
 Nope! Cursor only told me what the problem is, that font SimHei cannot be
-found. I knew i don’t have that font so i installed it and told Cursor to load
+found. So I installed it (https://fontzone.net/font-details/simhei) and told Cursor to load
 and use that font instead of checking the computer. I also told it to package it
 with EXE file.

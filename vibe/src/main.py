@@ -858,29 +858,46 @@ class Game:
     # --------- render ---------
 
     def draw_background(self) -> None:
-        # Sky
-        self.screen.fill((135, 206, 235))
-        # Clouds
-        for cx in range(self.sidebar_w + 40, self.width, 180):
+        # Sky - fill entire screen with light blue
+        self.screen.fill((135, 206, 250))
+        # Clouds - draw across entire width
+        for cx in range(40, self.width, 180):
             pygame.draw.circle(self.screen, (255, 255, 255), (cx, 80), 24)
             pygame.draw.circle(self.screen, (255, 255, 255), (cx + 24, 80), 20)
             pygame.draw.circle(self.screen, (255, 255, 255), (cx + 10, 64), 20)
-        # Grass
-        pygame.draw.rect(
-            self.screen,
-            (60, 179, 113),
-            (self.sidebar_w, self.height - 24, self.play_w, 24),
-        )
+        # Grass hill - create curved hill shape at bottom
+        # Use a vibrant green color
+        grass_color = (76, 187, 23)  # Vibrant green
+        hill_height = 60
+        hill_top_y = self.height - hill_height
+        # Draw grass hill using polygon for smooth curve
+        # Create points for a curved hill
+        points = [(0, self.height)]
+        # Add curve points
+        num_points = 20
+        for i in range(num_points + 1):
+            x = int((i / num_points) * self.width)
+            # Create a smooth curve using sine wave
+            curve_offset = int(
+                15 * math.sin((i / num_points) * math.pi)
+            )
+            y = hill_top_y + curve_offset
+            points.append((x, y))
+        points.append((self.width, self.height))
+        pygame.draw.polygon(self.screen, grass_color, points)
 
     def draw_sidebar(self) -> None:
-        pygame.draw.rect(self.screen, (240, 240, 240), (0, 0, self.sidebar_w, self.height))
+        # Background is drawn first, so sidebar area shows sky/grass
+        # Just draw the buttons on top
         self.draw_button_chinese(self.btn_rotate, self.btn_rotate_chars)
         self.draw_button_chinese(self.btn_pinyin, self.btn_pinyin_chars)
         self.draw_button_chinese(self.btn_idiom, self.btn_idiom_chars)
 
     def draw_button(self, rect: pygame.Rect, text: str) -> None:
-        pygame.draw.rect(self.screen, (210, 210, 210), rect, border_radius=6)
-        pygame.draw.rect(self.screen, (160, 160, 160), rect, 2, border_radius=6)
+        # Warm medium orange button color
+        pygame.draw.rect(self.screen, (217, 122, 60), rect, border_radius=6)
+        # Slightly darker warm orange border
+        pygame.draw.rect(self.screen, (190, 100, 45), rect, 2, border_radius=6)
         surf = self.font_ui.render(text, True, (0, 0, 0))
         tx = rect.x + (rect.w - surf.get_width()) // 2
         ty = rect.y + (rect.h - surf.get_height()) // 2
@@ -888,8 +905,10 @@ class Game:
 
     def draw_button_chinese(self, rect: pygame.Rect, chars: List[str]) -> None:
         """Draw button with Chinese characters from a list."""
-        pygame.draw.rect(self.screen, (210, 210, 210), rect, border_radius=6)
-        pygame.draw.rect(self.screen, (160, 160, 160), rect, 2, border_radius=6)
+        # Warm medium orange button color
+        pygame.draw.rect(self.screen, (217, 122, 60), rect, border_radius=6)
+        # Slightly darker warm orange border
+        pygame.draw.rect(self.screen, (190, 100, 45), rect, 2, border_radius=6)
         # Render all characters and combine them
         char_surfs = [
             self.font_chinese_ui.render(ch, True, (0, 0, 0)) for ch in chars
