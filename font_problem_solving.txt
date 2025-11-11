@@ -1,0 +1,63 @@
+1. Font Loading Changes
+The Problem
+Initially, the game tried to use system fonts (fonts installed on your computer)
+to display Chinese characters. When the SimHei font wasn’t installed, the game
+showed blocks instead of Chinese characters.
+The Solution Journey
+Old Approach (What We Removed)
+• get_resource_path(): Tried to find where files were located
+• test_font_chinese(): Tested if a font could display Chinese characters
+• find_chinese_font(): Searched through all installed fonts to find one
+that works
+Why this didn’t work well: - It depended on fonts being installed on each
+user’s computer - Different computers have different fonts - Some computers
+might not have any Chinese fonts at all
+New Approach (What We Added)
+• _load_font_from_file(): Loads the font directly from a file in your
+project folder
+Why this is better: - The font file (simhei.ttf) is included with your game
+- Works the same on every computer - No need to check if fonts are installed -
+Works when packaged as an executable or web app
+How find_project_root() Changed
+Before: It only looked in one place for files as all files were in same project
+folder.
+After: It looks in different places depending on how the game is running:
+1. When running normally (just python main.py):
+• Looks in the current folder where you run the command
+2. When packaged as an .exe (PyInstaller):
+• When you run the EXE file it stores all the game data like json files
+in a temp folder
+• So the Find_project_root find where the data is now
+• Looks in a special temporary folder where PyInstaller puts all files
+• Also checks the folder where the .exe file is located
+Why this matters: Your game needs to find data files (like level1.json) and
+the font file. The game might run in different ways, so it needs to know where
+to look in each situation.
+
+2. UTF-8 Encoding Fix
+What is Encoding?
+Encoding is how computers store text. Different languages use different encoding
+methods.
+The Problem
+Your JSON files were saved with a special marker at the beginning called a
+“BOM” (Byte Order Mark). This marker helps some programs know the file is
+UTF-8, but Python’s json library doesn’t like it and throws an error.
+The Error I got
+ERROR loading level1.json: Unexpected UTF-8 BOM (decode using utf-8-sig)
+The Solution
+Changed from: open(file, “r”, encoding=“utf-8”)
+To:
+open(file, “r”, encoding=“utf-8-sig”)
+What utf-8-sig does: - The -sig part means “signature” (the BOM marker)
+- It tells Python: “If there’s a BOM marker, remove it before reading” - This
+makes the file readable without errors
+Simple analogy: It’s like removing a label from a box before opening it - the
+label was helpful for storage, but gets in the way when you want to use what’s
+inside.
+
+3. Font File Setup
+Did Cursor Download the Font?
+Nope! Cursor only told me what the problem is, that font SimHei cannot be
+found. I knew i don’t have that font so i installed it and told Cursor to load
+and use that font instead of checking the computer. I also told it to package it
+with EXE file.
